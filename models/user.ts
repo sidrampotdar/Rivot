@@ -1,9 +1,10 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface UserDocument extends Document {
+  clerkId: string;
   name: string;
   email: string;
-  password: string;
+  password?: string;
   avatar?: string;
   workspaces: mongoose.Types.ObjectId[];
   createdAt: Date;
@@ -11,6 +12,7 @@ export interface UserDocument extends Document {
 
 const UserSchema: Schema<UserDocument> = new Schema(
   {
+    clerkId: { type: String, required: true, unique: true },
     name: { type: String, required: true, trim: true },
     email: {
       type: String,
@@ -19,7 +21,7 @@ const UserSchema: Schema<UserDocument> = new Schema(
       lowercase: true,
       trim: true,
     },
-    password: { type: String, required: true },
+    password: { type: String, required: false, default: null },
     avatar: { type: String, default: null },
     workspaces: [{ type: Schema.Types.ObjectId, ref: "Workspace" }],
   },

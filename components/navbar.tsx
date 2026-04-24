@@ -30,7 +30,7 @@ const Navbar = () => {
         <div className="ml-auto flex items-center gap-2">
           {isSignedIn ? (
             <>
-              <UserButton afterSignOutUrl="/" />
+              <UserButton />
               <SignOutButton>
                 <Button variant="outline" size="sm">
                   Sign out
@@ -39,11 +39,11 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <SignInButton mode="modal">
+              <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                 <Button size="sm">Sign in</Button>
               </SignInButton>
 
-              <SignUpButton mode="modal">
+              <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
                 <Button variant="secondary" size="sm">
                   Sign up
                 </Button>
