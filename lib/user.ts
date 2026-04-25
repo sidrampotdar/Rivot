@@ -31,6 +31,12 @@ export default async function syncClerkUserToDb() {
       setDefaultsOnInsert: true,
     },
   );
+  const safeUser = {
+    _id: user._id.toString(),
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar || "",
+  };
 
-  return user;
+  return safeUser;
 }

@@ -17,6 +17,11 @@ const ProjectSchema: Schema<ProjectDocument> = new Schema(
       ref: "Workspace",
       required: true,
     },
+    ownerId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
   },
   {

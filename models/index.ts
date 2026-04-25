@@ -1,10 +1,10 @@
-import User from "./user";
-import Workspace from "./workspace";
-import Project from "./project";
-import Board from "./board";
-import Column from "./column";
-import Task from "./task";
-import Comment from "./comment";
-import ActivityLog from "./activityLog";
+import User from "./user.ts";
+import Workspace from "./workspace.ts";
+import Project from "./project.ts";
+import Board from "./board.ts";
+import Column from "./column.ts";
+import Task from "./task.ts";
+import Comment from "./comment.ts";
+import ActivityLog from "./activityLog.ts";
 
 export { User, Workspace, Project, Board, Column, Task, Comment, ActivityLog };

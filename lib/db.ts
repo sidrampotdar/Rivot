@@ -1,5 +1,7 @@
 import mongoose from "mongoose"; // Mongoose for MongoDB
-const MONGODB_URI = process.env.MONGODB_URI; // DB URI from env
+const MONGODB_URI =
+  process.env.MONGODB_URI ||
+  "mongodb+srv://sidramappapotdar_db_user:%40Z!X7jRNGAFMZ5B@rivet-test.0vsahab.mongodb.net/?appName=rivet-test"; // DB URI from env
 
 if (!MONGODB_URI) {
   // Check if URI exists
