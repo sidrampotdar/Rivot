@@ -1,6 +1,7 @@
 import syncClerkUserToDb from "@/lib/user";
 import { getUserProjects } from "@/lib/projects";
 import CreateProject from "@/components/create-project";
+import { Workspace } from "@/models";
 // Server Component (DashboardPage)
 //         ↓ (props)
 // Client (CreateProject)
@@ -27,10 +28,18 @@ export default async function DashboardPage() {
   }
 
   const projects = await getUserProjects(user._id);
+  const workspace = await Workspace.findOne({ members: user._id })
+    .select("_id")
+    .lean();
+  const workspaceId = workspace?._id?.toString() ?? "";
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <CreateProject user={user} projects={projects} />
+      <CreateProject
+        user={user}
+        projects={projects}
+        workspaceId={workspaceId}
+      />
     </main>
   );
 }

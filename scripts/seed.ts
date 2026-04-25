@@ -45,7 +45,28 @@ const workspaceData = [
   },
 ];
 
-const projectNames = ["Workspace kickoff", "Client onboarding"];
+const projectsData = [
+  {
+    name: "Workspace Kickoff",
+    description: "Initial setup and team onboarding for the workspace",
+  },
+  {
+    name: "Client Onboarding",
+    description: "Complete client integration and training program",
+  },
+  {
+    name: "Website Redesign",
+    description: "Complete redesign of company website with new branding",
+  },
+  {
+    name: "Mobile App MVP",
+    description: "Build minimum viable product for mobile application",
+  },
+  {
+    name: "API Integration",
+    description: "Integrate third-party payment and analytics APIs",
+  },
+];
 
 const taskTitles = [
   "Setup workspace structure",
@@ -56,6 +77,13 @@ const taskTitles = [
   "Assign first tasks",
   "Add comments to tasks",
   "Finalize sprint plan",
+  "Design mockups",
+  "Code implementation",
+  "Testing and QA",
+  "Deploy to staging",
+  "Deploy to production",
+  "Monitor performance",
+  "Gather feedback",
 ];
 
 const columnNames = ["To Do", "In Progress", "Done"];
@@ -118,13 +146,13 @@ async function seed() {
     let commentCount = 0;
 
     for (const workspace of workspaces) {
-      const projectCountForWorkspace = projectNames.length;
       const projects = await Project.insertMany(
-        projectNames.slice(0, projectCountForWorkspace).map((name) => ({
-          name,
-          description: `Workstream for ${workspace.name}`,
+        projectsData.map((project) => ({
+          name: project.name,
+          description: project.description,
           workspaceId: workspace._id,
           createdBy: workspace.ownerId,
+          ownerId: workspace.ownerId,
         })),
       );
       projectCount += projects.length;

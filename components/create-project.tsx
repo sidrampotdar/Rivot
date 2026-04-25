@@ -3,9 +3,30 @@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import DialogProject from "./dialog-project";
+import { useRouter } from "next/navigation";
 
-const CreateProject = ({ user, projects }) => {
+type ProjectCard = {
+  _id: string;
+  name: string;
+  description: string;
+};
+
+type CreateProjectProps = {
+  user: {
+    _id: string;
+    name: string;
+  };
+  projects: ProjectCard[];
+  workspaceId: string;
+};
+
+const CreateProject = ({ user, projects, workspaceId }: CreateProjectProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const router = useRouter();
+
+  const handleClick = (id: string) => {
+    router.push(`/project/${id}`);
+  };
 
   return (
     <>
@@ -24,6 +45,8 @@ const CreateProject = ({ user, projects }) => {
       <DialogProject
         isOpen={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
+        userId={user._id}
+        workspaceId={workspaceId}
       />
 
       {/* Projects Section */}
@@ -41,6 +64,7 @@ const CreateProject = ({ user, projects }) => {
             {projects.map((project) => (
               <div
                 key={project._id}
+                onClick={() => handleClick(project._id)}
                 className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md"
               >
                 <h3 className="text-lg font-semibold text-slate-900">

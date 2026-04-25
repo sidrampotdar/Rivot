@@ -6,51 +6,60 @@ import { Project, Board, Column } from "@/models";
 
 const defaultColumns = ["To Do", "In Progress", "Done"];
 
-export async function createProject(data: {
+export async function createProject({
+  name,
+  description,
+  userId,
+  workspaceId,
+}: {
   name: string;
   description: string;
   userId: string;
   workspaceId: string;
-}) {
+}): Promise<{
+  projectId: string;
+  boardId: string;
+  columnIds: string[];
+}> {
   await connectDB();
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const userObjectId = new mongoose.Types.ObjectId(data.userId);
-    const workspaceObjectId = new mongoose.Types.ObjectId(data.workspaceId);
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const workspaceObjectId = new mongoose.Types.ObjectId(workspaceId);
 
-    // ✅ 1. Create Project
+    // 1. Project
     const [project] = await Project.create(
       [
         {
-          name: data.name,
-          description: data.description,
-          ownerId: userObjectId,
-          createdBy: userObjectId, // 🔥 FIX
+          name,
+          description,
           workspaceId: workspaceObjectId,
+          ownerId: userObjectId,
+          createdBy: userObjectId,
         },
       ],
       { session },
     );
 
-    // ✅ 2. Create Board
+    // 2. Board
     const [board] = await Board.create(
       [
         {
           name: "Main Board",
-          project: project._id,
+          projectId: project._id,
         },
       ],
       { session },
     );
 
-    // ✅ 3. Create Columns
+    // 3. Columns
     const columns = await Column.insertMany(
       defaultColumns.map((col, index) => ({
         name: col,
-        board: board._id,
+        boardId: board._id,
         order: index,
       })),
       { session },
@@ -59,7 +68,11 @@ export async function createProject(data: {
     await session.commitTransaction();
     session.endSession();
 
-    return { project, board, columns };
+    return {
+      projectId: project._id.toString(),
+      boardId: board._id.toString(),
+      columnIds: columns.map((column) => column._id.toString()),
+    };
   } catch (err) {
     await session.abortTransaction();
     session.endSession();

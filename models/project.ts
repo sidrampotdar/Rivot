@@ -4,6 +4,7 @@ export interface ProjectDocument extends Document {
   name: string;
   description?: string;
   workspaceId: mongoose.Types.ObjectId;
+  ownerId: mongoose.Types.ObjectId;
   createdBy: mongoose.Types.ObjectId;
   createdAt: Date;
 }
