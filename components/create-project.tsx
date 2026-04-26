@@ -16,6 +16,7 @@ type CreateProjectProps = {
   user: {
     _id: string;
     name: string;
+    role?: "admin" | "employee";
   };
   projects: ProjectCard[];
   workspaceId: string;
@@ -29,6 +30,8 @@ const CreateProject = ({ user, projects, workspaceId }: CreateProjectProps) => {
     router.push(`/project/${id}`);
   };
 
+  const isAdmin = user.role === "admin";
+
   return (
     <>
       {/* Header */}
@@ -38,18 +41,22 @@ const CreateProject = ({ user, projects, workspaceId }: CreateProjectProps) => {
             Welcome back, {user.name.split(" ")[0]} 👋
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Here's what's happening with your projects today.
+            {isAdmin 
+              ? "Here's what's happening with your projects today."
+              : "Here are the projects you're assigned to."}
           </p>
         </div>
 
-        <Button
-          onClick={() => setIsDialogOpen(true)}
-          className="gap-2"
-          size="lg"
-        >
-          <Plus className="h-4 w-4" />
-          New Project
-        </Button>
+        {isAdmin && (
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            className="gap-2"
+            size="lg"
+          >
+            <Plus className="h-4 w-4" />
+            New Project
+          </Button>
+        )}
       </div>
 
       <DialogProject
@@ -72,16 +79,20 @@ const CreateProject = ({ user, projects, workspaceId }: CreateProjectProps) => {
             </div>
             <h3 className="font-medium text-foreground">No projects yet</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Create your first project to get started 🚀
+              {isAdmin 
+                ? "Create your first project to get started 🚀"
+                : "You haven't been added to any projects yet."}
             </p>
-            <Button
-              onClick={() => setIsDialogOpen(true)}
-              variant="outline"
-              className="mt-4 gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Create Project
-            </Button>
+            {isAdmin && (
+              <Button
+                onClick={() => setIsDialogOpen(true)}
+                variant="outline"
+                className="mt-4 gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Create Project
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -36,6 +36,7 @@ type WorkspaceSettingsProps = {
   }>;
   ownerId: string;
   currentUserId: string;
+  userRole?: "admin" | "employee";
 };
 
 export default function WorkspaceSettings({
@@ -44,6 +45,7 @@ export default function WorkspaceSettings({
   members,
   ownerId,
   currentUserId,
+  userRole,
 }: WorkspaceSettingsProps) {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
@@ -150,7 +152,7 @@ export default function WorkspaceSettings({
     }
   };
 
-  const isOwner = currentUserId === ownerId;
+  const canManage = currentUserId === ownerId || userRole === "admin";
 
   return (
     <div className="space-y-8">
@@ -172,7 +174,7 @@ export default function WorkspaceSettings({
           <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             Workspace Name
           </h2>
-          {isOwner && !isEditing && (
+          {canManage && !isEditing && (
             <Button
               onClick={() => setIsEditing(true)}
               variant="ghost"
@@ -230,7 +232,7 @@ export default function WorkspaceSettings({
           <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             Members ({localMembers.length})
           </h2>
-          {isOwner && (
+          {canManage && (
             <Button
               onClick={() => setIsAddMemberOpen(true)}
               size="sm"
@@ -268,7 +270,7 @@ export default function WorkspaceSettings({
                 </div>
               </div>
 
-              {isOwner && member._id !== ownerId && (
+              {canManage && member._id !== ownerId && (
                 <Button
                   onClick={() => handleRemoveMember(member._id)}
                   disabled={loading}

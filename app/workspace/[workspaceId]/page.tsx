@@ -22,9 +22,9 @@ export default async function WorkspacePage({
 
   await connectDB();
 
-  // Get the actual MongoDB user ID from Clerk ID
+  // Get the actual MongoDB user ID and role from Clerk ID
   const dbUser = await User.findOne({ clerkId: clerkUser.id })
-    .select("_id")
+    .select("_id role")
     .lean();
 
   const { workspace } = await getWorkspace(workspaceId);
@@ -67,6 +67,7 @@ export default async function WorkspacePage({
           members={membersArray}
           ownerId={workspace.owner._id.toString()}
           currentUserId={dbUser?._id?.toString() ?? ""}
+          userRole={dbUser?.role as "admin" | "employee" | undefined}
         />
       </div>
     </main>

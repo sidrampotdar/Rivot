@@ -26,6 +26,11 @@ export default async function DashboardPage() {
     );
   }
 
+  if (!user.role) {
+    const { redirect } = await import("next/navigation");
+    redirect("/onboarding");
+  }
+
   const projects = await getUserProjects(user._id);
   const workspace = await Workspace.findOne({ members: user._id })
     .select("_id")
@@ -35,7 +40,7 @@ export default async function DashboardPage() {
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <CreateProject
-        user={user}
+        user={{ _id: user._id, name: user.name, role: user.role || undefined }}
         projects={projects}
         workspaceId={workspaceId}
       />
