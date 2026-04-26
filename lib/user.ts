@@ -23,7 +23,7 @@ export default async function syncClerkUserToDb() {
       clerkId: clerkUser.id,
       name,
       email,
-      avatar: clerkUser.profileImageUrl || null,
+      avatar: clerkUser.imageUrl || null,
     },
     {
       upsert: true,

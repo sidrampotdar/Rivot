@@ -1,42 +1,43 @@
-import mongoose from "mongoose"; // Mongoose for MongoDB
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  "mongodb+srv://sidramappapotdar_db_user:%40Z!X7jRNGAFMZ5B@rivet-test.0vsahab.mongodb.net/?appName=rivet-test"; // DB URI from env
+import mongoose from "mongoose";
+
+const MONGODB_URI = process.env.MONGODB_URI || "";
 
 if (!MONGODB_URI) {
-  // Check if URI exists
-  throw new Error( // Throw error if not
+  throw new Error(
     "Please define the MONGODB_URI environment variable inside .env.local",
   );
 }
 
-const connectDB = async (): Promise<void> => {
-  // Connect function
-  try {
-    // Attempt connection
-    await mongoose.connect(MONGODB_URI, {
-      // Connect with options
-      // Common configuration options
-      autoIndex: true, // Useful for development, maybe false in production
-    });
+// Cache the connection promise to avoid multiple connections in serverless
+let cached = (global as any).mongoose;
 
-    console.log("MongoDB successfully connected."); // Log success
+if (!cached) {
+  cached = (global as any).mongoose = { conn: null, promise: null };
+}
+
+const connectDB = async (): Promise<void> => {
+  if (cached.conn) {
+    return;
+  }
+
+  if (!cached.promise) {
+    cached.promise = mongoose
+      .connect(MONGODB_URI, {
+        autoIndex: true,
+      })
+      .then((mongoose) => {
+        console.log("MongoDB connected.");
+        return mongoose;
+      });
+  }
+
+  try {
+    cached.conn = await cached.promise;
   } catch (error) {
-    // Catch error
-    console.error("Initial MongoDB connection error:", error); // Log error
-    process.exit(1); // Exit process with failure
+    cached.promise = null;
+    console.error("MongoDB connection error:", error);
+    throw error;
   }
 };
 
-// Monitor connection events for lifecycle management
-mongoose.connection.on("error", (err) => {
-  // On error
-  console.error(`MongoDB connection error: ${err}`); // Log
-});
-
-mongoose.connection.on("disconnected", () => {
-  // On disconnect
-  console.log("MongoDB disconnected"); // Log
-});
-
-export default connectDB; // Export function
+export default connectDB;

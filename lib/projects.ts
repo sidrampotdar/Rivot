@@ -3,6 +3,8 @@ import { Workspace, Project, Board, Column, Task } from "@/models";
 import mongoose from "mongoose";
 
 export async function getUserProjects(userId: string) {
+  await connectDB();
+
   // 1. Find workspaces where user is a member
   const workspaces = await Workspace.find({
     members: userId,
@@ -15,7 +17,7 @@ export async function getUserProjects(userId: string) {
     workspaceId: { $in: workspaceIds },
   }).lean();
 
-  // 🔥 3. Convert to plain objects
+  // 3. Convert to plain objects
   const safeProjects = projects.map((project) => ({
     _id: project._id.toString(),
     name: project.name,
@@ -26,6 +28,25 @@ export async function getUserProjects(userId: string) {
   }));
 
   return safeProjects;
+}
+
+export async function getProjectUsers(
+  workspaceId: string,
+): Promise<Array<{ _id: string; name: string }>> {
+  await connectDB();
+
+  const workspaceObjectId = new mongoose.Types.ObjectId(workspaceId);
+
+  const workspace = await Workspace.findById(workspaceObjectId)
+    .populate("members", "name")
+    .lean();
+
+  if (!workspace || !workspace.members) return [];
+
+  return (workspace.members as any[]).map((m: any) => ({
+    _id: m._id.toString(),
+    name: m.name,
+  }));
 }
 
 export async function getProjectBoardData(projectId: string) {

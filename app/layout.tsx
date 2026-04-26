@@ -1,25 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/navbar";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ThemeProvider } from "@/lib/theme-provider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Rivet",
-  description: "Project Management with Clerk auth",
+  title: "Rivot — Project Management",
+  description:
+    "Rivot helps software teams plan, track, and ship work with a clean Kanban experience.",
 };
 
 export default function RootLayout({
@@ -30,19 +22,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn(
-        "h-full",
-        "antialiased",
-        geistSans.variable,
-        geistMono.variable,
-        "font-sans",
-        inter.variable,
-      )}
+      className={cn("h-full antialiased", inter.variable, "font-sans")}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col pt-16">
+      <body className="min-h-full flex flex-col pt-16 bg-background text-foreground transition-colors duration-300">
         <ClerkProvider>
-          <Navbar />
-          {children}
+          <ThemeProvider>
+            <Navbar />
+            {children}
+          </ThemeProvider>
         </ClerkProvider>
       </body>
     </html>

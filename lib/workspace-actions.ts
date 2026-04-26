@@ -96,8 +96,9 @@ export async function removeMemberFromWorkspace({
 
   // Check if user is owner
   const workspace = await Workspace.findById(workspaceObjectId);
+  if (!workspace) throw new Error("Workspace not found.");
   if (workspace.ownerId.toString() === userObjectId.toString()) {
-    throw new Error("Cannot remove workspace owner");
+    throw new Error("Cannot remove workspace owner.");
   }
 
   // Remove member from workspace

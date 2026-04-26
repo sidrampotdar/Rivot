@@ -33,22 +33,25 @@ export async function getTaskDetails(taskId: string): Promise<{
     .sort({ createdAt: -1 })
     .lean();
 
+  const assignedTo = task.assignedTo as any;
+  const createdBy = task.createdBy as any;
+
   return {
     task: {
       ...task,
       _id: task._id.toString(),
       columnId: task.columnId.toString(),
       boardId: task.boardId.toString(),
-      assignedTo: task.assignedTo
+      assignedTo: assignedTo
         ? {
-            _id: task.assignedTo._id.toString(),
-            name: task.assignedTo.name,
+            _id: assignedTo._id.toString(),
+            name: assignedTo.name,
           }
         : null,
-      createdBy: task.createdBy
+      createdBy: createdBy
         ? {
-            _id: task.createdBy._id.toString(),
-            name: task.createdBy.name,
+            _id: createdBy._id.toString(),
+            name: createdBy.name,
           }
         : null,
     },

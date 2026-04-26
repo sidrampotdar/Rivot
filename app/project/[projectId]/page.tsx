@@ -1,4 +1,5 @@
 import { getProjectBoardData } from "@/lib/projects";
+import { getProjectUsers } from "@/lib/projects";
 import ProjectPageClient from "./project-page-client";
 
 export default async function ProjectPage({
@@ -10,12 +11,15 @@ export default async function ProjectPage({
 
   const data = await getProjectBoardData(projectId);
 
+  // Fetch real workspace users instead of using mock data
+  const users = await getProjectUsers(data.project.workspaceId.toString());
+
   // Serialize data for client
   const serializedData = {
     project: {
       _id: data.project._id.toString(),
       name: data.project.name,
-      description: data.project.description,
+      description: data.project.description || "",
     },
     board: {
       _id: data.board._id.toString(),
@@ -33,6 +37,7 @@ export default async function ProjectPage({
         assignedTo: task.assignedTo?.toString(),
       })),
     })),
+    users,
   };
 
   return <ProjectPageClient data={serializedData} />;

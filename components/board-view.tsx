@@ -58,9 +58,9 @@ export default function BoardView({
     setSelectedColumnId(null);
   };
 
-  const getUserInfo = (userId?: string) => {
+  const getUserInfo = (userId?: string): { _id: string; name: string } | null => {
     if (!userId) return null;
-    return users.find((u) => u._id === userId);
+    return users.find((u) => u._id === userId) ?? null;
   };
 
   const getTaskById = (taskId: string) => {

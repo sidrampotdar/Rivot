@@ -2,6 +2,11 @@ import { getWorkspace } from "@/lib/workspace-actions";
 import WorkspaceSettings from "@/components/workspace-settings";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import connectDB from "@/lib/db";
+import User from "@/models/user";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function WorkspacePage({
   params,
@@ -15,6 +20,13 @@ export default async function WorkspacePage({
     redirect("/sign-in");
   }
 
+  await connectDB();
+
+  // Get the actual MongoDB user ID from Clerk ID
+  const dbUser = await User.findOne({ clerkId: clerkUser.id })
+    .select("_id")
+    .lean();
+
   const { workspace } = await getWorkspace(workspaceId);
 
   const membersArray = Array.isArray(workspace.members)
@@ -26,21 +38,35 @@ export default async function WorkspacePage({
     : [];
 
   return (
-    <main className="max-w-4xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">
+    <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+      <Button
+        asChild
+        variant="ghost"
+        size="sm"
+        className="mb-6 gap-1 text-muted-foreground hover:text-foreground"
+      >
+        <Link href="/dashboard">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Link>
+      </Button>
+
+      <div className="animate-fade-in mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           Workspace Settings
         </h1>
-        <p className="text-slate-600 mt-1">Manage your workspace and members</p>
+        <p className="mt-1 text-muted-foreground">
+          Manage your workspace and team members.
+        </p>
       </div>
 
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+      <div className="animate-slide-up rounded-xl border border-border bg-card p-6">
         <WorkspaceSettings
           workspaceId={workspaceId}
           workspaceName={workspace.name}
           members={membersArray}
           ownerId={workspace.owner._id.toString()}
-          currentUserId={clerkUser.id}
+          currentUserId={dbUser?._id?.toString() ?? ""}
         />
       </div>
     </main>

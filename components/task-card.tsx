@@ -2,6 +2,7 @@
 
 import { TaskDocument } from "@/models/task";
 import { format } from "date-fns";
+import { Calendar, User, Flag } from "lucide-react";
 
 type TaskCardProps = {
   task: TaskDocument & { _id: string };
@@ -9,10 +10,22 @@ type TaskCardProps = {
   onTaskClick: (taskId: string) => void;
 };
 
-const priorityColors = {
-  low: "bg-blue-100 text-blue-800",
-  medium: "bg-yellow-100 text-yellow-800",
-  high: "bg-red-100 text-red-800",
+const priorityConfig = {
+  low: {
+    bg: "bg-sky-50 dark:bg-sky-950/30",
+    text: "text-sky-700 dark:text-sky-400",
+    border: "border-sky-200 dark:border-sky-800",
+  },
+  medium: {
+    bg: "bg-amber-50 dark:bg-amber-950/30",
+    text: "text-amber-700 dark:text-amber-400",
+    border: "border-amber-200 dark:border-amber-800",
+  },
+  high: {
+    bg: "bg-rose-50 dark:bg-rose-950/30",
+    text: "text-rose-700 dark:text-rose-400",
+    border: "border-rose-200 dark:border-rose-800",
+  },
 };
 
 export default function TaskCard({
@@ -20,43 +33,48 @@ export default function TaskCard({
   assigneeInfo,
   onTaskClick,
 }: TaskCardProps) {
+  const priority = priorityConfig[task.priority] || priorityConfig.medium;
+
   return (
     <div
       onClick={() => onTaskClick(task._id.toString())}
-      className="rounded-lg bg-white p-3 shadow-sm border border-slate-200 cursor-pointer hover:shadow-md transition"
+      className="group cursor-pointer rounded-xl border border-border bg-card p-3.5 transition-all duration-200 hover:border-primary/30 hover:shadow-md"
     >
       {/* Title */}
-      <h4 className="font-medium text-sm text-slate-900 mb-2 line-clamp-2">
+      <h4 className="text-sm font-medium text-card-foreground line-clamp-2 leading-snug">
         {task.title}
       </h4>
 
       {/* Meta info */}
-      <div className="space-y-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         {/* Priority badge */}
-        <div className="flex items-center gap-2">
-          <span
-            className={`text-xs px-2 py-1 rounded ${
-              priorityColors[task.priority]
-            }`}
-          >
-            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+        <span
+          className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium ${priority.bg} ${priority.text} ${priority.border}`}
+        >
+          <Flag className="h-3 w-3" />
+          {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+        </span>
+
+        {/* Due date */}
+        {task.dueDate && (
+          <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3" />
+            {format(new Date(task.dueDate), "MMM d")}
+          </span>
+        )}
+      </div>
+
+      {/* Assignee */}
+      {assigneeInfo && (
+        <div className="mt-3 flex items-center gap-1.5 border-t border-border/50 pt-2.5">
+          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
+            {assigneeInfo.name.charAt(0).toUpperCase()}
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {assigneeInfo.name.split(" ")[0]}
           </span>
         </div>
-
-        {/* Due date and assignee */}
-        <div className="flex items-center justify-between text-xs text-slate-600">
-          {task.dueDate && (
-            <span className="flex items-center gap-1">
-              📅 {format(new Date(task.dueDate), "MMM d")}
-            </span>
-          )}
-          {assigneeInfo && (
-            <span className="flex items-center gap-1">
-              👤 {assigneeInfo.name.split(" ")[0]}
-            </span>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

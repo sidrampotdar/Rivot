@@ -9,7 +9,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 type CreateTaskModalProps = {
   isOpen: boolean;
@@ -39,18 +41,9 @@ export default function CreateTaskModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Get current user ID from localStorage or sessionStorage (for now)
-  // In production, this should come from auth context
-  const getCurrentUserId = () => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("userId") || "";
-    }
-    return "";
-  };
-
   const handleCreate = async () => {
     if (!title.trim()) {
-      setError("Task title is required");
+      setError("Task title is required.");
       return;
     }
 
@@ -58,7 +51,8 @@ export default function CreateTaskModal({
     setLoading(true);
 
     try {
-      const createdBy = getCurrentUserId();
+      // Use the first available user as createdBy since we don't have auth context here
+      const createdBy = users.length > 0 ? users[0]._id : "";
 
       await createTask({
         title: title.trim(),
@@ -83,7 +77,9 @@ export default function CreateTaskModal({
       onTaskCreated();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create task");
+      setError(
+        err instanceof Error ? err.message : "Failed to create task. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -108,65 +104,84 @@ export default function CreateTaskModal({
 
         <div className="space-y-4">
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
 
           {/* Title */}
-          <div>
-            <label className="text-sm font-medium text-slate-700">Title</label>
-            <input
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Title</label>
+            <Input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter task title"
-              className="w-full rounded-md border border-slate-300 p-2 text-sm mt-1"
+              placeholder="What needs to be done?"
               disabled={loading}
             />
           </div>
 
           {/* Description */}
-          <div>
-            <label className="text-sm font-medium text-slate-700">
-              Description
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              Description{" "}
+              <span className="font-normal text-muted-foreground">
+                (optional)
+              </span>
             </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter task description (optional)"
+              placeholder="Add more details…"
               rows={3}
-              className="w-full rounded-md border border-slate-300 p-2 text-sm mt-1"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               disabled={loading}
             />
           </div>
 
-          {/* Priority */}
-          <div>
-            <label className="text-sm font-medium text-slate-700">
-              Priority
-            </label>
-            <select
-              value={priority}
-              onChange={(e) => setPriority(e.target.value as any)}
-              className="w-full rounded-md border border-slate-300 p-2 text-sm mt-1"
-              disabled={loading}
-            >
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Priority */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Priority
+              </label>
+              <select
+                value={priority}
+                onChange={(e) =>
+                  setPriority(e.target.value as "low" | "medium" | "high")
+                }
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                disabled={loading}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+
+            {/* Due Date */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Due Date
+              </label>
+              <Input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                disabled={loading}
+              />
+            </div>
           </div>
 
           {/* Assign To */}
-          <div>
-            <label className="text-sm font-medium text-slate-700">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
               Assign To
             </label>
             <select
               value={assignedTo}
               onChange={(e) => setAssignedTo(e.target.value)}
-              className="w-full rounded-md border border-slate-300 p-2 text-sm mt-1"
+              className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               disabled={loading}
             >
               <option value="">Unassigned</option>
@@ -178,28 +193,21 @@ export default function CreateTaskModal({
             </select>
           </div>
 
-          {/* Due Date */}
-          <div>
-            <label className="text-sm font-medium text-slate-700">
-              Due Date
-            </label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="w-full rounded-md border border-slate-300 p-2 text-sm mt-1"
-              disabled={loading}
-            />
-          </div>
-
           {/* Buttons */}
           <div className="flex gap-2 pt-2">
             <Button
               onClick={handleCreate}
               disabled={loading || !title.trim()}
-              className="flex-1 bg-black text-white hover:bg-slate-900"
+              className="flex-1"
             >
-              {loading ? "Creating..." : "Create Task"}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating…
+                </>
+              ) : (
+                "Create Task"
+              )}
             </Button>
             <Button
               onClick={handleClose}

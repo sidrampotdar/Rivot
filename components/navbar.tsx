@@ -10,6 +10,8 @@ import {
   SignOutButton,
 } from "@clerk/nextjs";
 import Link from "next/link";
+import ThemeToggle from "@/components/theme-toggle";
+
 const Navbar = () => {
   const { isSignedIn, isLoaded } = useUser();
 
@@ -17,26 +19,43 @@ const Navbar = () => {
   if (!isLoaded) return null;
 
   return (
-    <nav className="fixed inset-x-0 top-0 z-50 border-b border-slate-200/70 bg-white/95 shadow-sm backdrop-blur-sm">
-      {" "}
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+    <nav className="fixed inset-x-0 top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <div className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-          <Link href="/" className="flex items-center gap-2">
-            <ChartNoAxesColumnIncreasing />
-          </Link>
-          <Link href="/" className="flex items-center gap-2">
-            <span>Rivot</span>
-          </Link>
-        </div>
+        <Link href="/" className="flex items-center gap-2 text-foreground">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <ChartNoAxesColumnIncreasing className="h-4 w-4" />
+          </div>
+          <span className="text-lg font-semibold tracking-tight">Rivot</span>
+        </Link>
+
+        {/* Nav links (signed in) */}
+        {isSignedIn && (
+          <div className="ml-6 hidden items-center gap-1 sm:flex">
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Link href="/dashboard">Dashboard</Link>
+            </Button>
+          </div>
+        )}
 
         {/* Right side */}
         <div className="ml-auto flex items-center gap-2">
+          <ThemeToggle />
+
           {isSignedIn ? (
             <>
               <UserButton />
               <SignOutButton>
-                <Button variant="outline" size="sm">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground"
+                >
                   Sign out
                 </Button>
               </SignOutButton>
@@ -48,7 +67,7 @@ const Navbar = () => {
               </SignInButton>
 
               <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
-                <Button variant="secondary" size="sm">
+                <Button variant="outline" size="sm">
                   Sign up
                 </Button>
               </SignUpButton>
