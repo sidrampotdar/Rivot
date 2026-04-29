@@ -2,6 +2,7 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface ColumnDocument extends Document {
   name: string;
+  category: "todo" | "in-progress" | "done";
   boardId: mongoose.Types.ObjectId;
   order: number;
   createdAt: Date;
@@ -10,6 +11,11 @@ export interface ColumnDocument extends Document {
 const ColumnSchema: Schema<ColumnDocument> = new Schema(
   {
     name: { type: String, required: true, trim: true },
+    category: {
+      type: String,
+      enum: ["todo", "in-progress", "done"],
+      default: "todo",
+    },
     boardId: { type: Schema.Types.ObjectId, ref: "Board", required: true },
     order: { type: Number, required: true, default: 0 },
   },

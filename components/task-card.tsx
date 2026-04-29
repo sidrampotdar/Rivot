@@ -2,7 +2,7 @@
 
 import { TaskDocument } from "@/models/task";
 import { format } from "date-fns";
-import { Calendar, User, Flag } from "lucide-react";
+import { Calendar, User, Flag, CircleDot, Bug, Bookmark, CheckSquare, GitPullRequest } from "lucide-react";
 
 type TaskCardProps = {
   task: TaskDocument & { _id: string };
@@ -35,11 +35,24 @@ export default function TaskCard({
 }: TaskCardProps) {
   const priority = priorityConfig[task.priority] || priorityConfig.medium;
 
+  const TypeIcon = {
+    epic: <Bookmark className="h-3.5 w-3.5 text-purple-500" />,
+    story: <Bookmark className="h-3.5 w-3.5 text-green-500" />,
+    task: <CheckSquare className="h-3.5 w-3.5 text-blue-500" />,
+    bug: <Bug className="h-3.5 w-3.5 text-red-500" />,
+    subtask: <GitPullRequest className="h-3.5 w-3.5 text-slate-500" />
+  }[task.type] || <CircleDot className="h-3.5 w-3.5 text-blue-500" />;
+
   return (
     <div
       onClick={() => onTaskClick(task._id.toString())}
       className="group cursor-pointer rounded-xl border border-border bg-card p-3.5 transition-all duration-200 hover:border-primary/30 hover:shadow-md"
     >
+      <div className="flex items-center gap-1.5 mb-2 text-xs text-muted-foreground font-mono">
+        {TypeIcon}
+        <span className="font-medium">{task.key}</span>
+      </div>
+
       {/* Title */}
       <h4 className="text-sm font-medium text-card-foreground line-clamp-2 leading-snug">
         {task.title}
@@ -54,6 +67,13 @@ export default function TaskCard({
           <Flag className="h-3 w-3" />
           {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
         </span>
+
+        {/* Story Points */}
+        {task.storyPoints !== undefined && task.storyPoints !== null && (
+          <span className="inline-flex items-center justify-center rounded-full bg-muted w-5 h-5 text-[10px] font-semibold text-muted-foreground">
+            {task.storyPoints}
+          </span>
+        )}
 
         {/* Due date */}
         {task.dueDate && (

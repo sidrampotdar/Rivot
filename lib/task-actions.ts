@@ -2,26 +2,32 @@
 
 import mongoose from "mongoose";
 import connectDB from "@/lib/db";
-import { Task, Column } from "@/models";
+import { Task, Column, Board, Project } from "@/models";
 import { revalidatePath } from "next/cache";
 
 export async function createTask({
   title,
   description = "",
+  type = "task",
   columnId,
   boardId,
   assignedTo,
   priority = "medium",
   dueDate,
+  storyPoints,
+  labels = [],
   createdBy,
 }: {
   title: string;
   description?: string;
+  type?: "epic" | "story" | "task" | "bug" | "subtask";
   columnId: string;
   boardId: string;
   assignedTo?: string;
   priority?: "low" | "medium" | "high";
   dueDate?: Date;
+  storyPoints?: number;
+  labels?: string[];
   createdBy: string;
 }): Promise<{ taskId: string }> {
   await connectDB();
@@ -39,10 +45,25 @@ export async function createTask({
       ? new mongoose.Types.ObjectId(assignedTo)
       : undefined;
 
+    // Get board to find project
+    const board = await Board.findById(boardObjectId).session(session);
+    if (!board) throw new Error("Board not found");
+
+    // Get project and increment task count
+    const project = await Project.findByIdAndUpdate(
+      board.projectId,
+      { $inc: { taskCount: 1 } },
+      { new: true, session }
+    );
+    if (!project) throw new Error("Project not found");
+
+    const taskKey = `${project.key}-${project.taskCount}`;
+
     // Get max order for tasks in this column
     const maxOrderTask = await Task.findOne({ columnId: columnObjectId })
       .sort({ order: -1 })
       .select("order")
+      .session(session)
       .lean();
 
     const nextOrder = (maxOrderTask?.order ?? -1) + 1;
@@ -50,12 +71,17 @@ export async function createTask({
     const [task] = await Task.create(
       [
         {
+          key: taskKey,
           title: title.trim(),
           description,
+          type,
           columnId: columnObjectId,
           boardId: boardObjectId,
           assignedTo: assignedToObjectId,
+          reporterId: createdByObjectId,
           priority,
+          labels,
+          storyPoints,
           dueDate,
           order: nextOrder,
           createdBy: createdByObjectId,
@@ -84,8 +110,10 @@ export async function updateTask({
   updates: {
     title?: string;
     description?: string;
+    type?: "epic" | "story" | "task" | "bug" | "subtask";
     priority?: "low" | "medium" | "high";
     dueDate?: Date | null;
+    storyPoints?: number | null;
     assignedTo?: string | null;
   };
   projectId: string;
@@ -110,6 +138,14 @@ export async function updateTask({
 
     if (updates.priority !== undefined) {
       updateData.priority = updates.priority;
+    }
+
+    if (updates.type !== undefined) {
+      updateData.type = updates.type;
+    }
+
+    if (updates.storyPoints !== undefined) {
+      updateData.storyPoints = updates.storyPoints;
     }
 
     if (updates.dueDate !== undefined) {

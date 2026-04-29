@@ -35,8 +35,10 @@ export default function CreateTaskModal({
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [type, setType] = useState<"epic" | "story" | "task" | "bug" | "subtask">("task");
   const [assignedTo, setAssignedTo] = useState<string>("");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
+  const [storyPoints, setStoryPoints] = useState<string>("");
   const [dueDate, setDueDate] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,10 +59,12 @@ export default function CreateTaskModal({
       await createTask({
         title: title.trim(),
         description,
+        type,
         columnId,
         boardId,
         assignedTo: assignedTo || undefined,
         priority,
+        storyPoints: storyPoints ? parseInt(storyPoints) : undefined,
         dueDate: dueDate ? new Date(dueDate) : undefined,
         createdBy,
       });
@@ -68,8 +72,10 @@ export default function CreateTaskModal({
       // Reset form
       setTitle("");
       setDescription("");
+      setType("task");
       setAssignedTo("");
       setPriority("medium");
+      setStoryPoints("");
       setDueDate("");
 
       // Refresh page data
@@ -88,8 +94,10 @@ export default function CreateTaskModal({
   const handleClose = () => {
     setTitle("");
     setDescription("");
+    setType("task");
     setAssignedTo("");
     setPriority("medium");
+    setStoryPoints("");
     setDueDate("");
     setError(null);
     onClose();
@@ -140,6 +148,27 @@ export default function CreateTaskModal({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
+            {/* Type */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Issue Type
+              </label>
+              <select
+                value={type}
+                onChange={(e) =>
+                  setType(e.target.value as any)
+                }
+                className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                disabled={loading}
+              >
+                <option value="epic">Epic</option>
+                <option value="story">Story</option>
+                <option value="task">Task</option>
+                <option value="bug">Bug</option>
+                <option value="subtask">Sub-task</option>
+              </select>
+            </div>
+
             {/* Priority */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
@@ -157,6 +186,21 @@ export default function CreateTaskModal({
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
               </select>
+            </div>
+            
+            {/* Story Points */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Story Points
+              </label>
+              <Input
+                type="number"
+                value={storyPoints}
+                onChange={(e) => setStoryPoints(e.target.value)}
+                placeholder="0"
+                min="0"
+                disabled={loading}
+              />
             </div>
 
             {/* Due Date */}

@@ -40,9 +40,12 @@ type TaskDetailsModalProps = {
 
 type TaskDetailsType = {
   task: {
+    key: string;
     title: string;
     description: string;
+    type: "epic" | "story" | "task" | "bug" | "subtask";
     priority: "low" | "medium" | "high";
+    storyPoints?: number;
     dueDate?: string;
     assignedTo?: { _id: string; name: string };
     createdBy?: { name: string };
@@ -103,6 +106,12 @@ export default function TaskDetailsModal({
   const [editPriority, setEditPriority] = useState<"low" | "medium" | "high">(
     "medium",
   );
+  
+  const [isEditingType, setIsEditingType] = useState(false);
+  const [editType, setEditType] = useState<"epic" | "story" | "task" | "bug" | "subtask">("task");
+
+  const [isEditingStoryPoints, setIsEditingStoryPoints] = useState(false);
+  const [editStoryPoints, setEditStoryPoints] = useState<string>("");
 
   // Comment states
   const [newComment, setNewComment] = useState("");
@@ -129,6 +138,8 @@ export default function TaskDetailsModal({
       setEditTitle(taskData.task.title);
       setEditDescription(taskData.task.description);
       setEditPriority(taskData.task.priority);
+      setEditType(taskData.task.type || "task");
+      setEditStoryPoints(taskData.task.storyPoints?.toString() || "");
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to load task details.",
@@ -195,6 +206,45 @@ export default function TaskDetailsModal({
     }
   };
 
+  const handleSaveType = async () => {
+    if (editType === data?.task.type) {
+      setIsEditingType(false);
+      return;
+    }
+
+    try {
+      await updateTask({
+        taskId,
+        updates: { type: editType },
+        projectId,
+      });
+      await loadTaskDetails();
+      setIsEditingType(false);
+    } catch {
+      setError("Failed to update issue type.");
+    }
+  };
+
+  const handleSaveStoryPoints = async () => {
+    const points = editStoryPoints === "" ? null : parseInt(editStoryPoints);
+    if (points === data?.task.storyPoints) {
+      setIsEditingStoryPoints(false);
+      return;
+    }
+
+    try {
+      await updateTask({
+        taskId,
+        updates: { storyPoints: points },
+        projectId,
+      });
+      await loadTaskDetails();
+      setIsEditingStoryPoints(false);
+    } catch {
+      setError("Failed to update story points.");
+    }
+  };
+
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
 
@@ -234,6 +284,8 @@ export default function TaskDetailsModal({
     setIsEditingTitle(false);
     setIsEditingDescription(false);
     setIsEditingPriority(false);
+    setIsEditingType(false);
+    setIsEditingStoryPoints(false);
     setActiveTab("comments");
     onClose();
   };
@@ -265,7 +317,9 @@ export default function TaskDetailsModal({
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <div className="flex items-center justify-between w-full">
-            <DialogTitle className="text-base">Task Details</DialogTitle>
+            <DialogTitle className="text-base flex items-center gap-2">
+              <span className="text-muted-foreground font-mono">{data.task.key}</span>
+            </DialogTitle>
             <Button
               onClick={handleDeleteTask}
               variant="ghost"
@@ -362,7 +416,45 @@ export default function TaskDetailsModal({
           </div>
 
           {/* Metadata Grid */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            
+            {/* Issue Type */}
+            <div>
+              <label className="mb-1.5 flex items-center gap-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                Type
+              </label>
+              {isEditingType ? (
+                <div className="flex gap-1">
+                  <select
+                    value={editType}
+                    onChange={(e) => setEditType(e.target.value as any)}
+                    className="flex-1 rounded-lg border border-input bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="epic">Epic</option>
+                    <option value="story">Story</option>
+                    <option value="task">Task</option>
+                    <option value="bug">Bug</option>
+                    <option value="subtask">Sub-task</option>
+                  </select>
+                  <Button
+                    onClick={handleSaveType}
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-primary"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => setIsEditingType(true)}
+                  className="cursor-pointer rounded-lg bg-muted/50 px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted font-medium capitalize"
+                >
+                  {data.task.type}
+                </div>
+              )}
+            </div>
+
             {/* Priority */}
             <div>
               <label className="mb-1.5 flex items-center gap-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">
@@ -410,15 +502,50 @@ export default function TaskDetailsModal({
                 <Calendar className="h-3 w-3" />
                 Due Date
               </label>
-              <div className="rounded-lg bg-muted/50 px-3 py-1.5 text-center text-sm text-foreground">
+              <div className="rounded-lg bg-muted/50 px-3 py-1.5 text-sm text-foreground">
                 {data.task.dueDate
                   ? format(new Date(data.task.dueDate), "MMM dd, yyyy")
                   : "—"}
               </div>
             </div>
 
-            {/* Assigned To */}
+            {/* Story Points */}
             <div>
+              <label className="mb-1.5 flex items-center gap-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                Points
+              </label>
+              {isEditingStoryPoints ? (
+                <div className="flex gap-1">
+                  <Input
+                    type="number"
+                    value={editStoryPoints}
+                    onChange={(e) => setEditStoryPoints(e.target.value)}
+                    className="flex-1 h-8 px-2 text-sm"
+                    autoFocus
+                  />
+                  <Button
+                    onClick={handleSaveStoryPoints}
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 text-primary"
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => setIsEditingStoryPoints(true)}
+                  className="cursor-pointer rounded-lg bg-muted/50 px-3 py-1.5 text-sm text-foreground transition-colors hover:bg-muted font-medium"
+                >
+                  {data.task.storyPoints !== undefined && data.task.storyPoints !== null
+                    ? data.task.storyPoints
+                    : "—"}
+                </div>
+              )}
+            </div>
+            
+            {/* Assigned To */}
+            <div className="col-span-2 sm:col-span-4 mt-2">
               <label className="mb-1.5 flex items-center gap-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">
                 <User className="h-3 w-3" />
                 Assignee

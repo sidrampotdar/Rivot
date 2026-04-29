@@ -26,6 +26,7 @@ const DialogProject = ({
 }) => {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [key, setKey] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +34,11 @@ const DialogProject = ({
   const handleCreate = async () => {
     if (!name.trim()) {
       setError("Project name is required.");
+      return;
+    }
+
+    if (!key.trim()) {
+      setError("Project key is required.");
       return;
     }
 
@@ -47,6 +53,7 @@ const DialogProject = ({
 
       const res = await createProject({
         name: name.trim(),
+        key: key.trim().toUpperCase(),
         description: description.trim(),
         userId,
         workspaceId,
@@ -55,6 +62,7 @@ const DialogProject = ({
       router.push(`/project/${res.projectId}`);
 
       setName("");
+      setKey("");
       setDescription("");
       onClose();
     } catch (err) {
@@ -68,6 +76,7 @@ const DialogProject = ({
 
   const handleClose = () => {
     setName("");
+    setKey("");
     setDescription("");
     setError(null);
     onClose();
@@ -93,8 +102,35 @@ const DialogProject = ({
             </label>
             <Input
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => {
+                const newName = event.target.value;
+                setName(newName);
+                if (!key || key.length <= 3) {
+                  // Auto-generate a simple key based on the name
+                  const words = newName.trim().split(/\s+/);
+                  let generatedKey = "";
+                  if (words.length > 1) {
+                    generatedKey = words.map((w) => w[0]).join("").substring(0, 3).toUpperCase();
+                  } else {
+                    generatedKey = newName.substring(0, 3).toUpperCase();
+                  }
+                  setKey(generatedKey);
+                }
+              }}
               placeholder="e.g. Hackathon App, Startup MVP"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">
+              Project Key
+            </label>
+            <Input
+              value={key}
+              onChange={(event) => setKey(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+              placeholder="e.g. HAC, STA"
+              maxLength={10}
               disabled={loading}
             />
           </div>

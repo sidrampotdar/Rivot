@@ -8,11 +8,13 @@ const defaultColumns = ["To Do", "In Progress", "Done"];
 
 export async function createProject({
   name,
+  key,
   description,
   userId,
   workspaceId,
 }: {
   name: string;
+  key: string;
   description: string;
   userId: string;
   workspaceId: string;
@@ -35,6 +37,7 @@ export async function createProject({
       [
         {
           name,
+          key: key.toUpperCase(),
           description,
           workspaceId: workspaceObjectId,
           ownerId: userObjectId,
@@ -56,9 +59,16 @@ export async function createProject({
     );
 
     // 3. Columns
+    const defaultColumnData = [
+      { name: "To Do", category: "todo" },
+      { name: "In Progress", category: "in-progress" },
+      { name: "Done", category: "done" }
+    ];
+
     const columns = await Column.insertMany(
-      defaultColumns.map((col, index) => ({
-        name: col,
+      defaultColumnData.map((col, index) => ({
+        name: col.name,
+        category: col.category,
         boardId: board._id,
         order: index,
       })),

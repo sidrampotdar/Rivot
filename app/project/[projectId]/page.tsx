@@ -28,10 +28,13 @@ export default async function ProjectPage({
       _id: col._id.toString(),
       name: col.name,
       order: col.order,
-      tasks: col.tasks.map((task) => ({
+      tasks: col.tasks.map((task: any) => ({
         _id: task._id.toString(),
+        key: task.key,
         title: task.title,
         description: task.description,
+        type: task.type || "task",
+        storyPoints: task.storyPoints,
         priority: task.priority,
         dueDate: task.dueDate,
         assignedTo: task.assignedTo?.toString(),
